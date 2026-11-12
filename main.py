@@ -6,12 +6,10 @@ Rijkswaterstaat WaterWebservices API.
 """
 
 import logging
-import requests
-import json
-from datetime import datetime
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
+from api_service import load_locations, get_latest_measurements
 
 # Configure application logging according to criteria 1.3
 logging.basicConfig(
@@ -23,46 +21,22 @@ logging.basicConfig(
 
 console = Console()
 
-def load_locations():
-    url = (
-        "https://ddapi20-waterwebservices.rijkswaterstaat.nl/"
-        "METADATASERVICES/OphalenCatalogus"
-    )
-
-    body = {
-        "CatalogusFilter": {
-            "Compartimenten": True
-        }
-    }
-
-    response = requests.post(url, json=body)
-
-    if response.status_code == 200:
-        data = response.json()
-        logging.info("Locaties succesvol geladen.")
-        return data["LocatieLijst"]
-
-    else:
-        logging.error(f"Locaties laden mislukt: {response.status_code}")
-        return None
-
 def search_location(locations):
     query_location = Prompt.ask("Zoek op locatie").lower()
 
     if not query_location.strip():
-        console.print(
-            "[yellow]Voer een zoekterm in.[/yellow]"
-        )
+        console.print("[yellow]Voer een zoekterm in.[/yellow]")
         return None
 
-    logging.info(
-        f"Zoekopdracht uitgevoerd: {query_location}"
-    )
+    logging.info(f"Zoekopdracht uitgevoerd: {query_location}")
 
     results = []
 
     for location in locations:
-        if (query_location in location["Naam"].lower() or query_location in location["Omschrijving"].lower()):
+        naam = (location.get("Naam") or "").lower()
+        omschrijving = (location.get("Omschrijving") or "").lower()
+
+        if query_location in naam or query_location in omschrijving:
             results.append(location)
 
     if not results:
@@ -71,14 +45,10 @@ def search_location(locations):
 
     results = results[:10]
 
-    console.print(
-        f"\n[green]Top {len(results)} resultaten:[/green]"
-    )
+    console.print(f"\n[green]Top {len(results)} resultaten:[/green]")
 
     for index, location in enumerate(results, start=1):
-        console.print(
-            f"[{index}] {location['Naam']}"
-        )
+        console.print(f"[{index}] {location['Naam']}")
 
     console.print("[0] Terug naar hoofdmenu")
 
@@ -88,6 +58,7 @@ def search_location(locations):
         choices.append(str(i))
 
     choice = Prompt.ask("Maak een keuze", choices=choices)
+    console.print()
 
     if choice == "0":
         return None
@@ -96,40 +67,50 @@ def search_location(locations):
 
     return selected_location
 
+def show_measurements(measurements):
+    if not measurements:
+        console.print("\n[yellow]Geen waterhoogte- of debietmetingen beschikbaar voor deze locatie.[/yellow]\n")
+        return None
+
+    console.print()
+
+    for waarneming in measurements.values():
+        grootheid = waarneming["AquoMetadata"]["Grootheid"]["Omschrijving"]
+        waarde = waarneming["MetingenLijst"][0]["Meetwaarde"]["Waarde_Numeriek"]
+        eenheid = waarneming["AquoMetadata"]["Eenheid"]["Code"]
+        tijdstip = waarneming["MetingenLijst"][0]["Tijdstip"]
+
+        console.print(f"{grootheid}")
+        console.print("-" * len(grootheid))
+        console.print(f"Waarde   : {waarde} {eenheid}")
+        console.print(f"Tijdstip : {tijdstip}")
+        console.print()
+
 def location_sub_menu(location):
     while True:
-        panel_text = (
-            f"Naam: {location['Naam']}\n"
-            f"Code: {location['Code']}\n"
-            f"Latitude: {location['Lat']}\n"
-            f"Longitude: {location['Lon']}\n\n"
-            "[1] Actuele metingen opvragen\n"
-            "[2] Toevoegen aan favorieten\n"
-            "[0] Terug naar hoofdmenu"
-        )
-
         console.print(
             Panel(
-                panel_text,
+                f"Naam: {location['Naam']}\n"
+                f"Code: {location['Code']}\n"
+                f"Latitude: {location['Lat']}\n"
+                f"Longitude: {location['Lon']}\n\n"
+                "[1] Actuele metingen opvragen\n"
+                "[2] Toevoegen aan favorieten\n"
+                "[0] Terug naar hoofdmenu",
                 title=location["Naam"],
                 expand=False
             )
         )
 
-        choice = Prompt.ask(
-            "Maak een keuze",
-            choices=["0", "1", "2"]
-        )
+        choice = Prompt.ask("Maak een keuze", choices=["0", "1", "2"])
 
         if choice == "1":
-            console.print(
-                "Nog niet geïmplementeerd"
-            )
+            measurements = get_latest_measurements(location["Code"])
+
+            show_measurements(measurements)
 
         elif choice == "2":
-            console.print(
-                "Nog niet geïmplementeerd"
-            )
+            console.print("Nog niet geïmplementeerd")
 
         elif choice == "0":
             break
@@ -139,26 +120,34 @@ def main():
 
     locations = load_locations()
 
-    console.print(Panel(
+    if not locations:
+        console.print("[red]Kan geen locaties laden van Rijkswaterstaat. Controleer je internetverbinding.[/red]")
+        return
+
+    console.print(
+        Panel(
             "Welkom bij Waterwachter.\n\n"
             "Met deze applicatie kunt u meetlocaties opzoeken, actuele watermetingen raadplegen en favoriete locaties "
             "beheren op basis van gegevens uit de Rijkswaterstaat WaterWebservices API.",
             title="[bold blue]Waterwachter[/bold blue]",
+            width=90,
             expand=False,
         )
     )
 
-    console.print()
-
     while True:
-        console.print(Panel(
-            "[1] Meetlocatie zoeken\n"
-            "[2] Favorieten beheren\n"
-            "[3] Zoekgeschiedenis bekijken\n"
-            "[0] Afsluiten",
-            title="Hoofdmenu",
-            expand=False
-        ))
+        console.print()
+
+        console.print(
+            Panel(
+                "[1] Meetlocatie zoeken\n"
+                "[2] Favorieten beheren\n"
+                "[3] Zoekgeschiedenis bekijken\n"
+                "[0] Afsluiten",
+                title="Hoofdmenu",
+                expand=False
+            )
+        )
 
         choice = Prompt.ask("Maak een keuze", choices=["0", "1", "2", "3"])
 
