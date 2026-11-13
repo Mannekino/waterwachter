@@ -22,7 +22,12 @@ def load_file(file_type):
         return []
 
     with file_name.open("r", encoding="utf-8") as file:
-        return json.load(file)
+        try:
+            return json.load(file)
+
+        except json.JSONDecodeError:
+            logging.warning(f"{file_name} bevat geen geldige JSON")
+            return []
 
 def save_file(content, file_type):
     if file_type == "favorites":
@@ -59,6 +64,19 @@ def add_favorite(location):
     favorites.append(new_favorite)
     save_file(favorites, "favorites")
     logging.info(f"Favoriet toegevoegd: {location['Naam']}")
+
+def remove_favorite(location_code):
+    favorites = load_file("favorites")
+
+    favorites = [
+        fav
+        for fav in favorites
+        if fav["code"] != location_code
+    ]
+
+    save_file(favorites, "favorites")
+
+    logging.info(f"Favoriet verwijderd: {location_code}")
 
 def add_history(query_location):
     history = load_file("history")

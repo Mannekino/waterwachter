@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt, Confirm
 from api_service import load_locations, get_latest_measurements
-from storage_service import is_favorite, is_favorites_full, add_favorite, add_history
+from storage_service import load_file, is_favorite, is_favorites_full, add_favorite, remove_favorite, add_history
 
 # Configure application logging according to criteria 1.3
 logging.basicConfig(
@@ -118,7 +118,7 @@ def location_sub_menu(location):
             elif is_favorites_full():
                 proceed = Confirm.ask(
                     "\n[yellow]Maximaal aantal favorieten bereikt. Door deze toe te voegen aan uw favorieten "
-                    "wordt de oudste favoriet verwijderd. Doorgaan[/yellow]",
+                    "wordt de oudste favoriet verwijderd. Doorgaan?[/yellow]",
                     default=False
                 )
 
@@ -132,6 +132,54 @@ def location_sub_menu(location):
             else:
                 add_favorite(location)
                 console.print(f"\n[green]'{location['Naam']}' is toegevoegd aan je favorieten.[/green]\n")
+
+        elif choice == "0":
+            break
+
+def favorite_sub_menu(favorites):
+    for index, favorite in enumerate(favorites, start=1):
+        console.print(f"[{index}] {favorite['naam']}")
+
+    console.print("[0] Terug naar hoofdmenu")
+
+    choices = ["0"]
+
+    for i in range(1, len(favorites) + 1):
+        choices.append(str(i))
+
+    choice = Prompt.ask("Maak een keuze",choices=choices)
+
+    console.print()
+
+    if choice == "0":
+        return None
+
+    favorite = favorites[int(choice) - 1]
+
+    while True:
+        console.print(
+            Panel(
+                f"Naam: {favorite['naam']}\n"
+                f"Code: {favorite['code']}\n"
+                f"Toegevoegd aan favorieten op: {favorite['toegevoegd_op']}\n\n"
+                "[1] Actuele metingen opvragen\n"
+                "[2] Verwijderen uit favorieten\n"
+                "[0] Terug naar hoofdmenu",
+                title=favorite["naam"],
+                expand=False
+            )
+        )
+
+        choice = Prompt.ask("Maak een keuze", choices=["0", "1", "2"])
+
+        if choice == "1":
+            measurements = get_latest_measurements(favorite["code"])
+            show_measurements(measurements)
+
+        elif choice == "2":
+            remove_favorite(favorite["code"])
+            console.print(f"\n[green]{favorite['naam']} is verwijderd uit je favorieten.[/green]")
+            break
 
         elif choice == "0":
             break
@@ -177,10 +225,29 @@ def main():
 
             if location:
                 location_sub_menu(location)
+
         elif choice == "2":
-            console.print("Favorietenbeheer openen...")
+            favorites = load_file("favorites")
+
+            if favorites:
+                console.print(f"\n[green]U heeft {len(favorites)} favorieten opgeslagen:[/green]")
+                favorite_sub_menu(favorites)
+
+            else:
+                console.print("\n[yellow]U heeft nog geen favorieten opgeslagen.[/yellow]")
+
         elif choice == "3":
-            console.print("Zoekgeschiedenis tonen...")
+            search_history = load_file("history")
+
+            if search_history:
+                console.print(f"\n[green]Uw laatste {len(search_history)} zoekopdrachten waren:[/green]")
+
+                for index, search_record in enumerate(search_history, start=1):
+                    console.print(f"[{index}] {search_record['zoekterm']} ({search_record['toegevoegd_op']})")
+
+            else:
+                console.print("\n[yellow]Er is nog geen zoekgeschiedenis aanwezig.[/yellow]")
+
         elif choice == "0":
             logging.info("Applicatie afgesloten door gebruiker.")
             console.print("Waterwachter wordt afgesloten. Tot ziens!")
