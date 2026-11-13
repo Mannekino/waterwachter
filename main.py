@@ -8,8 +8,9 @@ Rijkswaterstaat WaterWebservices API.
 import logging
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt
+from rich.prompt import Prompt, Confirm
 from api_service import load_locations, get_latest_measurements
+from storage_service import is_favorite, is_favorites_full, add_favorite, add_history
 
 # Configure application logging according to criteria 1.3
 logging.basicConfig(
@@ -29,6 +30,7 @@ def search_location(locations):
         return None
 
     logging.info(f"Zoekopdracht uitgevoerd: {query_location}")
+    add_history(query_location)
 
     results = []
 
@@ -110,7 +112,26 @@ def location_sub_menu(location):
             show_measurements(measurements)
 
         elif choice == "2":
-            console.print("Nog niet geïmplementeerd")
+            if is_favorite(location["Code"]):
+                console.print("\n[yellow]Deze locatie staat al in je favorieten.[/yellow]\n")
+
+            elif is_favorites_full():
+                proceed = Confirm.ask(
+                    "\n[yellow]Maximaal aantal favorieten bereikt. Door deze toe te voegen aan uw favorieten "
+                    "wordt de oudste favoriet verwijderd. Doorgaan[/yellow]",
+                    default=False
+                )
+
+                if proceed:
+                    add_favorite(location)
+                    console.print(
+                        f"\n[green]'{location['Naam']}' is toegevoegd (oudste favoriet verwijderd).[/green]\n")
+                else:
+                    console.print("\n[yellow]Toevoegen geannuleerd.[/yellow]\n")
+
+            else:
+                add_favorite(location)
+                console.print(f"\n[green]'{location['Naam']}' is toegevoegd aan je favorieten.[/green]\n")
 
         elif choice == "0":
             break

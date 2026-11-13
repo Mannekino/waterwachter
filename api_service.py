@@ -66,7 +66,7 @@ def get_latest_measurements(location_code):
     for waarneming in data["WaarnemingenLijst"]:
         code = waarneming["AquoMetadata"]["Grootheid"]["Code"]
 
-        # Filter on water level and flow rate measurements
+        # Filter on water level (waterhoogte) and flow rate (debiet) measurements
         if code not in ["WATHTE", "Q"]:
             continue
 

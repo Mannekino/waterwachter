@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 *.log
 test.py
+history.json
+favorites.json
