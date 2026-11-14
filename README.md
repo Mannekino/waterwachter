@@ -1,37 +1,30 @@
 # Waterwachter
-
-Waterwachter is een command\-line applicatie waarmee gebruikers meetlocaties van Rijkswaterstaat kunnen opzoeken en actuele watermetingen kunnen raadplegen via de WaterWebservices API.
+Waterwachter is een command-line applicatie waarmee gebruikers meetlocaties van Rijkswaterstaat kunnen opzoeken en actuele watermetingen kunnen raadplegen via de WaterWebservices API.
 
 ## Functionaliteiten
-
 - Zoeken naar meetlocaties op naam of omschrijving
-- Opvragen van actuele waterhoogte\- en debietmetingen
-- Opslaan van favoriete meetlocaties
-- Beheren van favorieten
-- Bijhouden van zoekgeschiedenis
-- Logging van gebruikersacties en fouten
+- Opvragen van actuele waterhoogte- en debietmetingen
+- Opslaan en beheren van favoriete meetlocaties (maximaal 10)
+- Bijhouden van zoekgeschiedenis (maximaal 10)
+- Logging van applicatiegebeurtenissen en fouten naar `waterwachter.log`
 
 ## Projectstructuur
+- `main.py`: Bevat de gebruikersinterface, menustructuur en invoervalidatie.
+- `api_service.py`: Verzorgt de communicatie met de Rijkswaterstaat WaterWebservices API en filtert de meetgegevens.
+- `storage_service.py`: Beheert het laden en opslaan van favorieten en zoekgeschiedenis in JSON-bestanden (`favorites.json` en `history.json`).
+- `requirements.txt`: Overzicht van de benodigde externe Python-packages (`requests` en `rich`).
 
-main.py
+## Installatie & vereisten
+Vereist **Python 3.10** of hoger. Installeer de benodigde packages vanuit de projectmap:
 
-api\_service.py
-
-storage\_service.py
-
-- main.py bevat de gebruikersinterface en menustructuur.
-- api\_service.py verzorgt communicatie met de Rijkswaterstaat API.
-- storage\_service.py verzorgt opslag van favorieten en zoekgeschiedenis.
-
-## Vereiste packages
-
-pip install requests rich
+```bash
+pip install -r requirements.txt
+```
 
 ## Applicatie starten
-
+```bash
 python main.py
+```
 
 ## Auteur
-
 Hans Vos
-
