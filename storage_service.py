@@ -63,7 +63,7 @@ def add_favorite(location):
 
     favorites.append(new_favorite)
     save_file(favorites, "favorites")
-    logging.info(f"Favoriet toegevoegd: {location['Naam']}")
+    logging.info(f"Favoriet toegevoegd: {location['Code']}")
 
 def remove_favorite(location_code):
     favorites = load_file("favorites")

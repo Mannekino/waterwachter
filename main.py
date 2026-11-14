@@ -92,7 +92,6 @@ def location_sub_menu(location):
     while True:
         console.print(
             Panel(
-                f"Naam: {location['Naam']}\n"
                 f"Code: {location['Code']}\n"
                 f"Latitude: {location['Lat']}\n"
                 f"Longitude: {location['Lon']}\n\n"
@@ -108,7 +107,6 @@ def location_sub_menu(location):
 
         if choice == "1":
             measurements = get_latest_measurements(location["Code"])
-
             show_measurements(measurements)
 
         elif choice == "2":
@@ -149,8 +147,6 @@ def favorite_sub_menu(favorites):
 
     choice = Prompt.ask("Maak een keuze",choices=choices)
 
-    console.print()
-
     if choice == "0":
         return None
 
@@ -159,7 +155,6 @@ def favorite_sub_menu(favorites):
     while True:
         console.print(
             Panel(
-                f"Naam: {favorite['naam']}\n"
                 f"Code: {favorite['code']}\n"
                 f"Toegevoegd aan favorieten op: {favorite['toegevoegd_op']}\n\n"
                 "[1] Actuele metingen opvragen\n"
@@ -199,7 +194,7 @@ def main():
             "Met deze applicatie kunt u meetlocaties opzoeken, actuele watermetingen raadplegen en favoriete locaties "
             "beheren op basis van gegevens uit de Rijkswaterstaat WaterWebservices API.",
             title="[bold blue]Waterwachter[/bold blue]",
-            width=90,
+            width=70,
             expand=False,
         )
     )
