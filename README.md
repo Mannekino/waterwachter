@@ -26,5 +26,15 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Testlocaties
+
+Niet alle ruim 2.000 meetlocaties van Rijkswaterstaat leveren waterhoogte- of debietmetingen; sommige stations meten uitsluitend waterkwaliteit. Om de applicatie direct te testen met locaties die actuele waterhoogte- en/of debietwaarden teruggeven, kun je bijvoorbeeld zoeken op:
+
+- `Arnhem, Nederrijn`
+- `Rotterdam Kuip`
+- `Dieren, IJssel`
+- `Botlek Geulhaven`
+- `Wijk bij Duurstede, Amsterdam-Rijnkanaal`
+
 ## Auteur
 Hans Vos
