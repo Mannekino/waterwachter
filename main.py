@@ -1,8 +1,8 @@
 """
-Waterwachter
+Provide the command-line interface for the Waterwachter application.
 
-Command-line application for searching measurement locations and retrieving water measurement data from the
-Rijkswaterstaat WaterWebservices API.
+This module manages the application menus, user input and presentation
+of measurement data, and coordinates the API and storage services.
 """
 
 import logging
@@ -12,7 +12,7 @@ from rich.prompt import Prompt, Confirm
 from api_service import load_locations, get_latest_measurements
 from storage_service import load_file, is_favorite, is_favorites_full, add_favorite, remove_favorite, add_history
 
-# Configure application logging according to criteria 1.3
+# Log application events and errors for troubleshooting
 logging.basicConfig(
     filename="waterwachter.log",
     level=logging.INFO,
@@ -45,6 +45,7 @@ def search_location(locations):
         console.print("[yellow]Geen locaties gevonden.[/yellow]")
         return None
 
+    # Limit the results to keep the selection menu manageable
     results = results[:10]
 
     console.print(f"\n[green]Top {len(results)} resultaten:[/green]")

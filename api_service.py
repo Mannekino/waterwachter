@@ -1,5 +1,8 @@
 """
-Collection of functions to interact with the WaterWebservices API
+Handle communication with the Rijkswaterstaat WaterWebservices API.
+
+This module retrieves measurement locations and the latest available
+water-level and flow-rate measurements for a selected location.
 """
 
 import logging
@@ -61,12 +64,13 @@ def get_latest_measurements(location_code):
 
     data = response.json()
 
+    # Keep only the most recent measurement for each supported measurement type
     latest = {}
 
     for waarneming in data["WaarnemingenLijst"]:
         code = waarneming["AquoMetadata"]["Grootheid"]["Code"]
 
-        # Filter on water level (waterhoogte) and flow rate (debiet) measurements
+        # Keep only water level ("WATHTE") and flow rate ("Q") measurements
         if code not in ["WATHTE", "Q"]:
             continue
 

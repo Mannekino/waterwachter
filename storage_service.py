@@ -1,5 +1,8 @@
 """
-Collection of functions for file handling in the Waterwachter application
+Manage persistent storage for the Waterwachter application.
+
+This module loads and saves favorites and search history as JSON files
+and limits both collections to the ten most recent entries.
 """
 
 import json
@@ -52,6 +55,7 @@ def is_favorites_full():
 def add_favorite(location):
     favorites = load_file("favorites")
 
+    # Remove the oldest favorite when the maximum of ten favorites is reached
     if len(favorites) >= MAX_FAVORITES:
         favorites.pop(0)
 
@@ -81,6 +85,7 @@ def remove_favorite(location_code):
 def add_history(query_location):
     history = load_file("history")
 
+    # Keep only the ten most recent search queries
     if len(history) >= MAX_HISTORY:
         history.pop(0)
 
